@@ -42,7 +42,9 @@ window.XIYOU_CONFIG = {
       "enabled": true,
       "motif": "mountain",
       "accent": "jade",
-      "downloads": [{"label": "百度网盘", "url": "https://pan.baidu.com/s/1K3Lh-0QpWzzIjAxMh3cTug?pwd=xc6t", "code": "xc6t"}],
+      "downloads": [
+        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1K3Lh-0QpWzzIjAxMh3cTug?pwd=xc6t", "code": "xc6t"}
+      ],
       "donation": null
     },
     {
@@ -54,7 +56,9 @@ window.XIYOU_CONFIG = {
       "enabled": true,
       "motif": "lotus",
       "accent": "purple",
-      "downloads": [{"label": "百度网盘", "url": "https://pan.baidu.com/s/1RJVZpn1h19q6UDBj0GmGfg?pwd=2umy", "code": "2umy"}],
+      "downloads": [
+        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1RJVZpn1h19q6UDBj0GmGfg?pwd=2umy", "code": "2umy"}
+      ],
       "donation": null
     },
     {
@@ -66,7 +70,9 @@ window.XIYOU_CONFIG = {
       "enabled": true,
       "motif": "fan",
       "accent": "gold",
-      "downloads": [{"label": "百度网盘", "url": "https://pan.baidu.com/s/1F0g7IcbnxUPsGrxAcpXJnw?pwd=7vpz", "code": "7vpz"}],
+      "downloads": [
+        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1F0g7IcbnxUPsGrxAcpXJnw?pwd=7vpz", "code": "7vpz"}
+      ],
       "donation": null
     },
     {
@@ -78,7 +84,9 @@ window.XIYOU_CONFIG = {
       "enabled": true,
       "motif": "scroll",
       "accent": "blue",
-      "downloads": [{"label": "百度网盘", "url": "https://pan.baidu.com/s/1VnkO1-vj4h2nbgI55KQn0Q?pwd=6kaq", "code": "6kaq"}],
+      "downloads": [
+        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1VnkO1-vj4h2nbgI55KQn0Q?pwd=6kaq", "code": "6kaq"}
+      ],
       "donation": null
     },
     {
@@ -90,7 +98,9 @@ window.XIYOU_CONFIG = {
       "enabled": true,
       "motif": "sun",
       "accent": "cinnabar",
-      "downloads": [{"label": "百度网盘", "url": "https://pan.baidu.com/s/1k0ts5pmmJGsOskzWLfELdA?pwd=9885", "code": "9885"}],
+      "downloads": [
+        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1k0ts5pmmJGsOskzWLfELdA?pwd=9885", "code": "9885"}
+      ],
       "donation": null
     },
     {
@@ -102,7 +112,23 @@ window.XIYOU_CONFIG = {
       "enabled": true,
       "motif": "scroll",
       "accent": "jade",
-      "downloads": [{"label": "百度网盘", "url": "https://pan.baidu.com/s/1NWh05XXDCiRNpe8f52Y_Yw?pwd=3259", "code": "3259"}],
+      "downloads": [
+        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1NWh05XXDCiRNpe8f52Y_Yw?pwd=3259", "code": "3259"}
+      ],
+      "donation": null
+    },
+    {
+      "id": "mogai",
+      "name": "魔改版",
+      "summary": "游戏文件与具体说明，以网盘文件夹内容为准。",
+      "ownership": "collected",
+      "author": "",
+      "enabled": true,
+      "motif": "sun",
+      "accent": "cinnabar",
+      "downloads": [
+        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1WyXkvzOCjYdsfyGLLf5ctQ?pwd=2026", "code": "2026"}
+      ],
       "donation": null
     }
   ]
