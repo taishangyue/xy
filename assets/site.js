@@ -14,7 +14,7 @@
   const icon = name => `<svg class="icon" aria-hidden="true"><use href="#icon-${name}"></use></svg>`;
   const illustratedVersions = new Set(["xiaoyao", "shie", "taishang", "zaixu", "huodong", "original", "mogai"]);
   const escape = value => String(value ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}[ch]));
-  const role = version => version.ownership === "self" ? {support:"赞赏作者", icon:"heart", message:"喜欢这段西行，欢迎赞赏作者，支持后续制作。"} : version.ownership === "collected" ? {support:"赞赏整理者", icon:"gift", message:"喜欢这份分享，欢迎赞赏整理者，支持后续整理。"} : {support:"自愿赞赏", icon:"heart", message:"愿这一卷能带给你快乐。感谢支持这处西游资源小站。"};
+  const role = version => version.ownership === "self" ? {support:"支持一下", icon:"heart", message:"喜欢这段西行，欢迎支持一下，帮助后续制作。"} : version.ownership === "collected" ? {support:"支持整理者", icon:"gift", message:"喜欢这份分享，欢迎支持整理者，帮助后续整理。"} : {support:"自愿赞赏", icon:"heart", message:"愿这一卷能带给你快乐。感谢支持这处西游资源小站。"};
   function nudgeCount(versionId) {
     if (nudgeCounts.has(versionId)) return nudgeCounts.get(versionId);
     let count = 0;
@@ -45,7 +45,7 @@
       const isFeatured = v === featured;
       const index = all.indexOf(v) + 1;
       const art = illustratedVersions.has(v.id)
-        ? `<img class="version-cover" src="assets/version-${escape(v.id)}.svg" alt="" width="720" height="300" loading="${index <= 3 ? "eager" : "lazy"}" decoding="async">`
+        ? `<img class="version-cover" src="assets/version-${escape(v.id)}.svg?v=20261013-brush" alt="" width="720" height="300" loading="${index <= 3 ? "eager" : "lazy"}" decoding="async">`
         : `<span class="art-ring"></span><svg class="motif-icon"><use href="#icon-${v.motif}"></use></svg><span class="art-character">${escape(v.name.replace(/版$/, "").slice(0,2))}</span><span class="art-cloud cloud-one"></span><span class="art-cloud cloud-two"></span><span class="art-corner">${String(index).padStart(2,"0")}</span>`;
       return `<article class="version-card accent-${v.accent}${isFeatured ? " featured-card" : ""}" data-version="${escape(v.id)}">
         <div class="card-art motif-${v.motif}" aria-hidden="true">${art}</div>
