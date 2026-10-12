@@ -72,3 +72,7 @@
 .nudge-count{min-width:24px;max-width:72px;padding:2px 7px;border-radius:20px;background:#fff8e6;color:#73501a;font-size:12px;font-weight:600;line-height:1.4;font-variant-numeric:tabular-nums;word-break:break-all;pointer-events:none}
 @media(max-width:560px){.dialog-actions .support-button{padding:12px 10px}.nudge-button{padding:10px 8px;gap:6px}}
 @media(prefers-reduced-motion:reduce){.nudge-button{transition:none}.nudge-button:hover{transform:none}}
+
+/* Original illustrated covers with outlined two-character calligraphy. */
+.version-cover{display:block;width:100%;height:100%;object-fit:cover;object-position:center;pointer-events:none}
+.card-art:has(.version-cover){background:#1d3340;border-bottom:1px solid #25382b12}
