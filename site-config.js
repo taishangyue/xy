@@ -43,7 +43,8 @@ window.XIYOU_CONFIG = {
       "motif": "mountain",
       "accent": "jade",
       "downloads": [
-        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1K3Lh-0QpWzzIjAxMh3cTug?pwd=xc6t", "code": "xc6t"}
+        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1K3Lh-0QpWzzIjAxMh3cTug?pwd=xc6t", "code": "xc6t"},
+        {"label": "123云盘", "url": "https://1818816111.share.123pan.cn/123pan/SENHjv-KHeM3?pwd=CVLH", "code": "CVLH"}
       ],
       "donation": null
     },
@@ -57,7 +58,8 @@ window.XIYOU_CONFIG = {
       "motif": "lotus",
       "accent": "purple",
       "downloads": [
-        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1RJVZpn1h19q6UDBj0GmGfg?pwd=2umy", "code": "2umy"}
+        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1RJVZpn1h19q6UDBj0GmGfg?pwd=2umy", "code": "2umy"},
+        {"label": "123云盘", "url": "https://1818816111.share.123pan.cn/123pan/SENHjv-Hn6I3?pwd=bMup", "code": "bMup"}
       ],
       "donation": null
     },
@@ -71,7 +73,8 @@ window.XIYOU_CONFIG = {
       "motif": "fan",
       "accent": "gold",
       "downloads": [
-        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1F0g7IcbnxUPsGrxAcpXJnw?pwd=7vpz", "code": "7vpz"}
+        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1F0g7IcbnxUPsGrxAcpXJnw?pwd=7vpz", "code": "7vpz"},
+        {"label": "123云盘", "url": "https://1818816111.share.123pan.cn/123pan/SENHjv-An6I3?pwd=X7Lg", "code": "X7Lg"}
       ],
       "donation": null
     },
@@ -85,7 +88,8 @@ window.XIYOU_CONFIG = {
       "motif": "scroll",
       "accent": "blue",
       "downloads": [
-        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1VnkO1-vj4h2nbgI55KQn0Q?pwd=6kaq", "code": "6kaq"}
+        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1VnkO1-vj4h2nbgI55KQn0Q?pwd=6kaq", "code": "6kaq"},
+        {"label": "123云盘", "url": "https://1818816111.share.123pan.cn/123pan/SENHjv-vKGM3?pwd=ztD3", "code": "ztD3"}
       ],
       "donation": null
     },
@@ -99,7 +103,8 @@ window.XIYOU_CONFIG = {
       "motif": "sun",
       "accent": "cinnabar",
       "downloads": [
-        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1k0ts5pmmJGsOskzWLfELdA?pwd=9885", "code": "9885"}
+        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1k0ts5pmmJGsOskzWLfELdA?pwd=9885", "code": "9885"},
+        {"label": "123云盘", "url": "https://1818816111.share.123pan.cn/123pan/SENHjv-hnNM3?pwd=sW4O", "code": "sW4O"}
       ],
       "donation": null
     },
@@ -113,7 +118,8 @@ window.XIYOU_CONFIG = {
       "motif": "scroll",
       "accent": "jade",
       "downloads": [
-        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1NWh05XXDCiRNpe8f52Y_Yw?pwd=3259", "code": "3259"}
+        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1NWh05XXDCiRNpe8f52Y_Yw?pwd=3259", "code": "3259"},
+        {"label": "123云盘", "url": "https://1818816111.share.123pan.cn/123pan/SENHjv-9n6I3?pwd=wqRU", "code": "wqRU"}
       ],
       "donation": null
     },
@@ -127,7 +133,8 @@ window.XIYOU_CONFIG = {
       "motif": "sun",
       "accent": "cinnabar",
       "downloads": [
-        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1WyXkvzOCjYdsfyGLLf5ctQ?pwd=2026", "code": "2026"}
+        {"label": "百度网盘", "url": "https://pan.baidu.com/s/1WyXkvzOCjYdsfyGLLf5ctQ?pwd=2026", "code": "2026"},
+        {"label": "123云盘", "url": "https://1818816111.share.123pan.cn/123pan/SENHjv-UL6M3?pwd=6zSk", "code": "6zSk"}
       ],
       "donation": null
     }
