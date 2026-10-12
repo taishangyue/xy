@@ -194,4 +194,12 @@
     render();
   });
   render();
+  // Clean public links open at the collection; explicit anchors and editor previews keep their destination.
+  if (window.parent === window && !window.location.hash) {
+    window.requestAnimationFrame(() => {
+      if (!window.location.hash) {
+        document.querySelector("#versions").scrollIntoView({behavior:"instant", block:"start"});
+      }
+    });
+  }
 })();
