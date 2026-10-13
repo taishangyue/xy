@@ -11,14 +11,55 @@
   let offlineEpoch = 0;
   let downloadController = null;
   let localPreview = false;
+  let pageAccess = "checking";
+  let resumeDialog = false;
+  let initialDestinationPending = true;
+  let releaseRetired = false;
+  const releaseId = document.querySelector('meta[name="xiyou-release"]').content;
   const nudges = XiyouNudges.create(config.nudges.endpoint);
   const grid = document.querySelector("#version-grid");
   const dialog = document.querySelector("#resource-dialog");
   const content = document.querySelector("#dialog-content");
+  const siteContent = document.querySelector("#site-content");
+  const accessGuard = document.querySelector("#access-guard");
+  const accessRetry = document.querySelector("#access-retry");
   const icon = name => `<svg class="icon" aria-hidden="true"><use href="#icon-${name}"></use></svg>`;
   const illustratedVersions = new Set(["xiaoyao", "shie", "taishang", "zaixu", "huodong", "original", "mogai"]);
   const escape = value => String(value ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}[ch]));
   const role = version => version.ownership === "self" ? {support:"支持一下", icon:"heart", message:"喜欢这段西行，欢迎支持一下，帮助后续制作。"} : version.ownership === "collected" ? {support:"支持整理者", icon:"gift", message:"喜欢这份分享，欢迎支持整理者，帮助后续整理。"} : {support:"自愿赞赏", icon:"heart", message:"愿这一卷能带给你快乐。感谢支持这处西游资源小站。"};
+  function setPageAccess(state) {
+    pageAccess = state;
+    document.documentElement.dataset.accessState = state;
+    const ready = state === "ready";
+    if (!ready && dialog.open) {
+      resumeDialog = state === "checking";
+      dialog.close();
+      document.body.classList.remove("dialog-open");
+    }
+    if (state === "unavailable") resumeDialog = false;
+    siteContent.hidden = !ready;
+    siteContent.inert = !ready;
+    accessGuard.hidden = ready;
+    accessRetry.disabled = state === "checking";
+    accessRetry.textContent = state === "checking" ? "正在验证…" : "重新验证";
+    document.querySelector("#access-title").textContent = state === "checking" ? "正在验证网络" : releaseRetired ? "此入口已停用" : navigator.onLine === false ? "当前未连接网络" : "联网验证未通过";
+    document.querySelector("#access-message").textContent = state === "checking" ? "验证成功后进入页面，请稍候。" : releaseRetired ? "请获取最新页面入口后访问。" : "请连接网络后重试。验证成功后才能进入页面。";
+    if (!ready) return;
+    if (resumeDialog) {
+      resumeDialog = false;
+      renderDialog();
+      dialog.showModal();
+      document.body.classList.add("dialog-open");
+      dialog.querySelector(".dialog-close").focus();
+    }
+    if (initialDestinationPending) {
+      initialDestinationPending = false;
+      if (window.parent === window) window.requestAnimationFrame(() => {
+        const destination = ["#top", "#versions", "#guide"].includes(location.hash) ? location.hash : "#versions";
+        document.querySelector(destination)?.scrollIntoView({behavior:"instant", block:"start"});
+      });
+    }
+  }
   // Never trust a download address restored from the HTTP cache or back/forward cache.
   // The public configuration is fetched from the site again, without eval or local storage.
   function clearDownloads(state = "unavailable") {
@@ -35,6 +76,7 @@
     toast.textContent = "";
     toast.classList.remove("is-visible");
     if (dialog.open && dialogMode === "downloads") renderDialog();
+    if (state === "unavailable") setPageAccess("unavailable");
   }
   async function fetchOnlineConfig(signal) {
     const generation = offlineEpoch;
@@ -43,7 +85,18 @@
     signal?.addEventListener("abort", cancel, {once:true});
     const timer = setTimeout(cancel, 12000);
     try {
-      if (signal?.aborted) throw new Error("cancelled");
+      if (signal?.aborted || navigator.onLine === false) throw new Error("offline or cancelled");
+      // All releases consult the one current manifest. A cached retired page
+      // remains blocked even if its old HTML and scripts are still on this device.
+      const releasedPath = /\/r\/[a-f0-9]{8}\/$/.test(new URL(".", document.baseURI).pathname);
+      const manifestUrl = new URL(releasedPath ? "../../entry.json" : "entry.json", document.baseURI);
+      manifestUrl.searchParams.set("online", Date.now() + "-" + Math.random().toString(36).slice(2));
+      const manifestResponse = await fetch(manifestUrl, {cache:"no-store", credentials:"omit", mode:"same-origin", redirect:"error", signal:controller.signal});
+      if (!manifestResponse.ok) throw new Error("entry unavailable");
+      const manifest = await manifestResponse.json();
+      if (manifest.schemaVersion !== 1 || !/^\d{8}-[a-f0-9]{8}$/.test(manifest.releaseId) || manifest.path !== "r/" + manifest.releaseId.slice(-8) + "/") throw new Error("invalid entry");
+      releaseRetired = manifest.releaseId !== releaseId;
+      if (releaseRetired) throw new Error("retired entry");
       const url = new URL("site-config.js", document.baseURI);
       url.searchParams.set("online", Date.now() + "-" + Math.random().toString(36).slice(2));
       const response = await fetch(url, {cache:"no-store", credentials:"omit", mode:"same-origin", redirect:"error", signal:controller.signal});
@@ -64,8 +117,10 @@
       signal?.removeEventListener("abort", cancel);
     }
   }
-  async function refreshDownloads() {
-    if (localPreview) return true;
+  async function refreshDownloads({entry = false} = {}) {
+    if (navigator.onLine === false) { clearDownloads("unavailable"); return false; }
+    if (localPreview) { setPageAccess("ready"); return true; }
+    if (entry || pageAccess !== "ready") setPageAccess("checking");
     clearDownloads("checking");
     const epoch = downloadEpoch;
     const controller = new AbortController();
@@ -79,6 +134,7 @@
       downloadStatus = "ready";
       document.documentElement.dataset.downloadState = "ready";
       if (dialog.open && dialogMode === "downloads") renderDialog();
+      setPageAccess("ready");
       return true;
     } catch {
       if (epoch === downloadEpoch) clearDownloads("unavailable");
@@ -192,6 +248,7 @@
       <div class="group-list">${config.community.groups.map((group,i) => `<div class="group-row"><div><strong>${escape(group.name)}</strong><p>${escape(group.number)}</p></div>${groupAction === "copy" ? `<button class="button button-ink group-action" type="button" data-group-copy="${i}" aria-label="复制${escape(group.name)}群号">复制群号 ${icon("copy")}</button>` : `<a class="button button-ink group-action" href="${escape(groupUrl(group))}" data-group-open="${i}"${group.joinUrl ? ' target="_blank" rel="noopener noreferrer"' : ""} aria-label="打开QQ：${escape(group.name)}">打开 QQ ${icon("external")}</a>`}<button class="icon-button group-copy" type="button" data-group-copy="${i}" aria-label="单独复制${escape(group.name)}群号" title="复制群号">${icon("copy")}</button></div>`).join("")}</div><p class="group-footer-note">${escape(config.community.note)}<br>直接跳转需要已安装 QQ 且浏览器允许唤起。若未打开，可切换复制模式，或点击每行的复制图标，在 QQ 中搜索群号。</p><p id="group-status" class="group-status" role="status" hidden></p>`;
   }
   document.querySelectorAll("[data-open-community]").forEach(button => button.addEventListener("click",()=> {
+    if (pageAccess !== "ready") return;
     dialogMode = "community";returnFocus = button;renderDialog();
     dialog.showModal();document.body.classList.add("dialog-open");dialog.querySelector(".dialog-close").focus();
   }));
@@ -211,12 +268,14 @@
     } catch {showToast("请手动复制：" + value);}
   }
   grid.addEventListener("click", event => {
+    if (pageAccess !== "ready") return;
     const button = event.target.closest("[data-action]");
     if (!button) return;
     const version = config.versions.find(v => v.enabled && v.id === button.dataset.id);
     if (version) openDialog(version, button.dataset.action === "support" ? "support" : "downloads", button);
   });
   content.addEventListener("click", async event => {
+    if (pageAccess !== "ready") { event.preventDefault(); return; }
     if (event.target.closest("[data-download-retry]")) { void refreshDownloads(); return; }
     const downloadLink = event.target.closest("[data-download-index]");
     if (downloadLink) {
@@ -282,7 +341,7 @@
   let pointerStartedOutside = false;
   dialog.addEventListener("pointerdown", event => { pointerStartedOutside = event.target === dialog; });
   dialog.addEventListener("click", event => { if (event.target === dialog && pointerStartedOutside) dialog.close(); });
-  dialog.addEventListener("close", () => {document.body.classList.remove("dialog-open"); if (returnFocus?.isConnected) returnFocus.focus();});
+  dialog.addEventListener("close", () => {document.body.classList.remove("dialog-open"); if (pageAccess === "ready" && returnFocus?.isConnected) returnFocus.focus();});
   // Local editor preview only. Nothing is saved to a server or accepted from unrelated windows.
   window.addEventListener("message", event => {
     if (window.parent === window || event.source !== window.parent) return;
@@ -299,30 +358,24 @@
     groupAction = config.community.defaultAction;
     window.XIYOU_CONFIG = config;
     render();
+    if (navigator.onLine === false) clearDownloads("unavailable");
+    else setPageAccess("ready");
   });
   render();
   nudges.subscribe(paintNudges);
   void nudges.refresh();
-  window.addEventListener("offline", () => { offlineEpoch++; if (!localPreview) clearDownloads("unavailable"); });
-  window.addEventListener("online", () => { if (!localPreview) void refreshDownloads(); });
-  window.addEventListener("pagehide", () => { if (!localPreview) clearDownloads("unavailable"); });
-  window.addEventListener("pageshow", event => { if (event.persisted && !localPreview) void refreshDownloads(); });
-  window.addEventListener("focus", () => { if (!localPreview && document.visibilityState === "visible") void refreshDownloads(); });
+  window.addEventListener("offline", () => { offlineEpoch++; clearDownloads("unavailable"); });
+  accessRetry.addEventListener("click", () => { void refreshDownloads({entry:true}); });
+  window.addEventListener("online", () => { void refreshDownloads({entry:true}); });
+  window.addEventListener("pagehide", () => { offlineEpoch++; clearDownloads("checking"); setPageAccess("checking"); });
+  window.addEventListener("pageshow", event => { if (event.persisted) void refreshDownloads({entry:true}); });
+  window.addEventListener("focus", () => { if (document.visibilityState === "visible") void refreshDownloads({entry:true}); });
   document.addEventListener("visibilitychange", () => {
-    if (localPreview) return;
-    if (document.visibilityState === "hidden") clearDownloads("unavailable");
-    else void refreshDownloads();
+    if (document.visibilityState === "hidden") { offlineEpoch++; clearDownloads("checking"); setPageAccess("checking"); }
+    else void refreshDownloads({entry:true});
   });
   setInterval(() => {
-    if (!localPreview && document.visibilityState === "visible" && dialog.open && dialogMode === "downloads" && !downloadController) void refreshDownloads();
+    if (!localPreview && pageAccess === "ready" && document.visibilityState === "visible" && !downloadController) void refreshDownloads();
   }, 20000);
-  void refreshDownloads();
-  // Clean public links open at the collection; explicit anchors and editor previews keep their destination.
-  if (window.parent === window && !window.location.hash) {
-    window.requestAnimationFrame(() => {
-      if (!window.location.hash) {
-        document.querySelector("#versions").scrollIntoView({behavior:"instant", block:"start"});
-      }
-    });
-  }
+  void refreshDownloads({entry:true});
 })();

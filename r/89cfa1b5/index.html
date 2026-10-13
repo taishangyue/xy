@@ -1,20 +1,43 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-access-state="checking">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#143d36">
   <meta name="description" content="开心西游系列改版资源，一处收藏，继续西行。免费下载，自愿赞赏。">
+  <meta name="xiyou-release" content="20261013-89cfa1b5">
   <title>开心西游 · 西行藏卷</title>
+  <style>
+    [hidden] { display: none !important; }
+    html:not([data-access-state="ready"]) #site-content { display: none !important; }
+    .access-guard { min-height: 100svh; display: grid; place-items: center; padding: 28px; box-sizing: border-box; background: #f5f0e4; color: #143d36; font-family: system-ui, sans-serif; }
+    .access-panel { width: min(100%, 440px); padding: 36px 28px; box-sizing: border-box; border: 1px solid #d8ccaa; border-radius: 16px; background: #fffaf0; text-align: center; }
+    .access-label { margin: 0 0 18px; color: #796336; letter-spacing: .15em; font-size: 14px; }
+    .access-panel h1 { font-size: 26px; margin: 0 0 16px; }
+    .access-message { font-size: 16px; line-height: 1.8; margin: 0 0 24px; }
+    .access-retry { border: 0; border-radius: 8px; padding: 12px 28px; background: #143d36; color: #fffaf0; font: inherit; cursor: pointer; }
+    .access-retry:disabled { opacity: .65; cursor: wait; }
+    .access-retry:focus-visible { outline: 3px solid #ad883b; outline-offset: 4px; }
+  </style>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/site.css">
-  <link rel="stylesheet" href="assets/refinements.css?v=20261013-shared-nudges">
-  <script src="site-config.js?v=20261013-shared-nudges" defer></script>
-  <script src="assets/config-utils.js?v=20261013-shared-nudges" defer></script>
-  <script src="assets/nudges.js?v=20261013-shared-nudges" defer></script>
-  <script src="assets/site.js?v=20261013-shared-nudges" defer></script>
+  <link rel="stylesheet" href="assets/refinements.css?v=20261013-entry-gate">
+  <script src="site-config.js?v=20261013-entry-gate" defer></script>
+  <script src="assets/config-utils.js?v=20261013-entry-gate" defer></script>
+  <script src="assets/nudges.js?v=20261013-entry-gate" defer></script>
+  <script src="assets/site.js?v=20261013-entry-gate" defer></script>
 </head>
 <body>
+  <section id="access-guard" class="access-guard" aria-labelledby="access-title">
+    <div class="access-panel">
+      <p class="access-label">开心西游 · 联网验证</p>
+      <h1 id="access-title">正在验证网络</h1>
+      <p id="access-message" class="access-message" role="status" aria-live="polite">验证成功后进入页面，请稍候。</p>
+      <button id="access-retry" class="access-retry" type="button" disabled>正在验证…</button>
+      <noscript><p class="access-message">进入页面需要联网验证。请连接网络并启用 JavaScript 后重试。</p></noscript>
+    </div>
+  </section>
+  <div id="site-content" hidden inert>
   <a class="skip-link" href="#versions">跳到游戏版本</a>
   <header class="site-header">
     <div class="container header-inner">
@@ -57,7 +80,6 @@
       </div>
       <div id="version-grid" class="version-grid" aria-live="polite"></div>
       <p id="empty-state" class="empty-state" hidden>这里暂时还没有藏卷。<span>新的西行故事，正在路上。</span></p>
-      <noscript><p class="unconfigured">下载入口需要联网验证。请连接网络并启用 JavaScript 后选择版本。</p></noscript>
       <div class="collection-footnote"><span class="small-seal" aria-hidden="true">记</span><p>每部改版，都是一段不同的西行。<br class="mobile-only">版本详情与最新文件，以对应网盘文件夹为准。</p></div>
       <div class="community-banner"><div><span class="community-banner-mark" aria-hidden="true">伴</span><div><h3>同行有伴，西行不孤。</h3><p>聊版本，也聊西游。六个交流入口，等你来相聚。</p></div></div><button type="button" class="button button-outline" data-open-community>西游交流群 <svg class="icon" aria-hidden="true"><use href="#icon-northeast"></use></svg></button></div>
     </section>
@@ -100,5 +122,6 @@
     <symbol id="icon-scroll" viewBox="0 0 64 64"><path d="M12 7h40v46H12V7Zm0 0C3 7 3 17 12 17m40 36c9 0 9-10 0-10M20 53h24M22 19h20M22 29h16M22 39h20"/></symbol>
     <symbol id="icon-sun" viewBox="0 0 64 64"><circle cx="32" cy="32" r="14"/><path d="M32 3v9m0 40v9M3 32h9m40 0h9M11 11l7 7m28 28 7 7m0-42-7 7M18 46l-7 7"/></symbol>
   </svg>
+  </div>
 </body>
 </html>
