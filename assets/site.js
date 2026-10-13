@@ -6,6 +6,11 @@
   let dialogMode = "downloads";
   let returnFocus = null;
   let toastTimer;
+  let downloadStatus = "checking";
+  let downloadEpoch = 0;
+  let offlineEpoch = 0;
+  let downloadController = null;
+  let localPreview = false;
   const nudgeCounts = new Map();
   const nudgeStoragePrefix = "xiyou-update-taps:v1:";
   const grid = document.querySelector("#version-grid");
@@ -15,6 +20,75 @@
   const illustratedVersions = new Set(["xiaoyao", "shie", "taishang", "zaixu", "huodong", "original", "mogai"]);
   const escape = value => String(value ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}[ch]));
   const role = version => version.ownership === "self" ? {support:"支持一下", icon:"heart", message:"喜欢这段西行，欢迎支持一下，帮助后续制作。"} : version.ownership === "collected" ? {support:"支持整理者", icon:"gift", message:"喜欢这份分享，欢迎支持整理者，帮助后续整理。"} : {support:"自愿赞赏", icon:"heart", message:"愿这一卷能带给你快乐。感谢支持这处西游资源小站。"};
+  // Never trust a download address restored from the HTTP cache or back/forward cache.
+  // The public configuration is fetched from the site again, without eval or local storage.
+  function clearDownloads(state = "unavailable") {
+    downloadEpoch++;
+    downloadController?.abort();
+    downloadController = null;
+    downloadStatus = state;
+    document.documentElement.dataset.downloadState = state;
+    for (const v of config.versions) v.downloads = [];
+    for (const v of window.XIYOU_CONFIG?.versions || []) v.downloads = [];
+    if (activeVersion) activeVersion.downloads = [];
+    clearTimeout(toastTimer);
+    const toast = document.querySelector("#toast");
+    toast.textContent = "";
+    toast.classList.remove("is-visible");
+    if (dialog.open && dialogMode === "downloads") renderDialog();
+  }
+  async function fetchOnlineConfig(signal) {
+    const generation = offlineEpoch;
+    const controller = new AbortController();
+    const cancel = () => controller.abort();
+    signal?.addEventListener("abort", cancel, {once:true});
+    const timer = setTimeout(cancel, 12000);
+    try {
+      if (signal?.aborted) throw new Error("cancelled");
+      const url = new URL("site-config.js", document.baseURI);
+      url.searchParams.set("online", Date.now() + "-" + Math.random().toString(36).slice(2));
+      const response = await fetch(url, {cache:"no-store", credentials:"omit", mode:"same-origin", redirect:"error", signal:controller.signal});
+      if (!response.ok) throw new Error("site unavailable");
+      let source = (await response.text()).replace(/^\uFEFF/, "").trim();
+      while (source.startsWith("/*")) {
+        const end = source.indexOf("*/");
+        if (end < 0) throw new Error("invalid configuration");
+        source = source.slice(end + 2).trim();
+      }
+      if (!/^window\.XIYOU_CONFIG\s*=/.test(source)) throw new Error("invalid configuration");
+      source = source.replace(/^window\.XIYOU_CONFIG\s*=\s*/, "").replace(/;\s*$/, "");
+      const data = JSON.parse(source);
+      if (XiyouConfig.validate(data).length || generation !== offlineEpoch || signal?.aborted) throw new Error("unverified configuration");
+      return XiyouConfig.normalize(data);
+    } finally {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", cancel);
+    }
+  }
+  async function refreshDownloads() {
+    if (localPreview) return true;
+    clearDownloads("checking");
+    const epoch = downloadEpoch;
+    const controller = new AbortController();
+    downloadController = controller;
+    try {
+      const fresh = await fetchOnlineConfig(controller.signal);
+      if (epoch !== downloadEpoch) return false;
+      const versions = new Map(fresh.versions.filter(v => v.enabled).map(v => [v.id, v]));
+      for (const v of config.versions) v.downloads = versions.get(v.id)?.downloads || [];
+      window.XIYOU_CONFIG = structuredClone(config);
+      downloadStatus = "ready";
+      document.documentElement.dataset.downloadState = "ready";
+      if (dialog.open && dialogMode === "downloads") renderDialog();
+      return true;
+    } catch {
+      if (epoch === downloadEpoch) clearDownloads("unavailable");
+      return false;
+    } finally {
+      if (downloadController === controller) downloadController = null;
+    }
+  }
+  clearDownloads("checking");
   function nudgeCount(versionId) {
     if (nudgeCounts.has(versionId)) return nudgeCounts.get(versionId);
     let count = 0;
@@ -75,7 +149,7 @@
     if (dialogMode === "downloads") {
       content.innerHTML = `<p class="eyebrow eyebrow-ink">取卷 · DOWNLOAD</p><h2 id="dialog-title">${escape(v.name)}</h2><p class="dialog-intro">${escape(v.summary)}</p>
         <div class="voluntary-note">${icon(owner.icon || "check")}<div><p>${escape(owner.message)}</p></div></div>
-        <div class="download-list">${v.downloads.map((link,i) => `<div class="download-row"><div class="download-label">${icon("folder")}<strong>${escape(link.label)}</strong></div>${link.code ? `<button type="button" class="copy-code" data-code-index="${i}" aria-label="复制${escape(link.label)}提取码 ${escape(link.code)}"><span>提取码 <b>${escape(link.code)}</b></span>${icon("copy")}</button>` : '<span class="no-code">无需提取码</span>'}<a class="button button-ink download-link" href="${escape(link.url)}" target="_blank" rel="noopener noreferrer">打开${escape(link.label)} ${icon("external")}</a></div>`).join("") || '<p class="unconfigured">此版本暂未配置有效下载入口，请稍后再来。</p>'}</div>
+        <div class="download-list">${downloadStatus === "ready" ? v.downloads.map((link,i) => `<div class="download-row"><div class="download-label">${icon("folder")}<strong>${escape(link.label)}</strong></div>${link.code ? `<button type="button" class="copy-code" data-code-index="${i}" aria-label="复制${escape(link.label)}提取码 ${escape(link.code)}"><span>提取码 <b>${escape(link.code)}</b></span>${icon("copy")}</button>` : '<span class="no-code">无需提取码</span>'}<a class="button button-ink download-link" data-download-index="${i}" href="${escape(link.url)}" target="_blank" rel="noopener noreferrer">打开${escape(link.label)} ${icon("external")}</a></div>`).join("") || '<p class="unconfigured">此版本暂未配置有效下载入口，请稍后再来。</p>' : `<div class="unconfigured" role="status"><p>${downloadStatus === "checking" ? "正在连接网站，请稍候…" : "当前无法连接网站。请联网后重试。"}</p>${downloadStatus === "checking" ? "" : '<button class="button button-outline" type="button" data-download-retry>重新连接</button>'}</div>`}</div>
         <p class="download-hint">将在新窗口打开网盘；游戏更新后，仍使用这些文件夹入口。</p>
         <div class="dialog-bottom"><span>愿你此行，满载欢喜。</span><div class="dialog-actions">${owner.support ? `<button class="support-button" type="button" data-dialog-action="support">${icon(owner.icon)} ${owner.support}</button>` : ""}<button class="nudge-button" type="button" data-update-request aria-label="${escape(v.name)}：催更 ${nudgeCount(v.id)}">${icon("bell")}<span>催更</span><b class="nudge-count" aria-live="polite" aria-atomic="true">${nudgeCount(v.id)}</b></button></div></div>`;
     } else {
@@ -94,14 +168,16 @@
     activeVersion = version;
     dialogMode = mode;
     returnFocus = opener;
+    if (mode === "downloads" && !localPreview) clearDownloads("checking");
     renderDialog();
     if (typeof dialog.showModal !== "function") {
-      if (version.downloads[0]) window.open(version.downloads[0].url, "_blank", "noopener,noreferrer");
+      showToast("请更新浏览器后查看下载入口。");
       return;
     }
     dialog.showModal();
     document.body.classList.add("dialog-open");
     dialog.querySelector(".dialog-close").focus();
+    if (mode === "downloads") void refreshDownloads();
   }
   function groupUrl(group) {
     return group.joinUrl || "mqqapi://card/show_pslcard?src_type=internal&version=1&uin=" + encodeURIComponent(group.number) + "&card_type=group&source=qrcode";
@@ -137,6 +213,27 @@
     if (version) openDialog(version, button.dataset.action === "support" ? "support" : "downloads", button);
   });
   content.addEventListener("click", async event => {
+    if (event.target.closest("[data-download-retry]")) { void refreshDownloads(); return; }
+    const downloadLink = event.target.closest("[data-download-index]");
+    if (downloadLink) {
+      event.preventDefault();
+      if (downloadStatus !== "ready" || !activeVersion) return;
+      const id = activeVersion.id, index = Number(downloadLink.dataset.downloadIndex);
+      // Keep the user's popup gesture, but never navigate to a cached address before verification.
+      const target = window.open("about:blank", "_blank");
+      if (target) target.opener = null;
+      try {
+        const fresh = localPreview ? config : await fetchOnlineConfig();
+        const link = fresh.versions.find(v => v.enabled && v.id === id)?.downloads[index];
+        if (!link) throw new Error("download unavailable");
+        if (target) target.location.replace(link.url);
+        else showToast("浏览器阻止了新窗口，请允许弹出窗口后再试。");
+      } catch {
+        target?.close();
+        if (!localPreview) clearDownloads("unavailable");
+      }
+      return;
+    }
     const nudgeButton = event.target.closest("[data-update-request]");
     if (nudgeButton && dialogMode === "downloads" && activeVersion) {
       const count = Math.min(Number.MAX_SAFE_INTEGER, nudgeCount(activeVersion.id) + 1);
@@ -158,17 +255,24 @@
     }
     const codeButton = event.target.closest("[data-code-index]");
     if (codeButton) {
-      const code = activeVersion.downloads[Number(codeButton.dataset.codeIndex)]?.code;
+      const id = activeVersion?.id, index = Number(codeButton.dataset.codeIndex);
+      if (!await refreshDownloads() || activeVersion?.id !== id || dialogMode !== "downloads") return;
+      const code = activeVersion.downloads[index]?.code;
       if (!code) return;
-      await copyText(code,"提取码已复制：",codeButton);
+      await copyText(code,"提取码已复制：",content.querySelector(`[data-code-index="${index}"]`));
     }
     const button = event.target.closest("[data-dialog-action]");
     if (button) {
       dialogMode = button.dataset.dialogAction === "support" ? "support" : "downloads";
+      if (dialogMode === "downloads" && !localPreview) clearDownloads("checking");
       renderDialog();
       dialog.querySelector(".dialog-close").focus();
       dialog.scrollTop = 0;
+      if (dialogMode === "downloads") void refreshDownloads();
     }
+  });
+  content.addEventListener("auxclick", event => {
+    if (event.target.closest("[data-download-index]")) event.preventDefault();
   });
   dialog.querySelector(".dialog-close").addEventListener("click", () => dialog.close());
   let pointerStartedOutside = false;
@@ -187,6 +291,12 @@
     if (window.parent === window || event.source !== window.parent) return;
     if (event.origin !== window.location.origin && !(location.protocol === "file:" && event.origin === "null")) return;
     if (event.data?.type !== "xiyou-config-preview" || XiyouConfig.validate(event.data.config).length) return;
+    if (!["127.0.0.1", "localhost"].includes(location.hostname) && location.protocol !== "file:") return;
+    localPreview = true;
+    downloadEpoch++;
+    downloadController?.abort();
+    downloadStatus = "ready";
+    document.documentElement.dataset.downloadState = "ready";
     if (dialog.open) dialog.close();
     config = XiyouConfig.normalize(event.data.config);
     groupAction = config.community.defaultAction;
@@ -194,6 +304,20 @@
     render();
   });
   render();
+  window.addEventListener("offline", () => { offlineEpoch++; if (!localPreview) clearDownloads("unavailable"); });
+  window.addEventListener("online", () => { if (!localPreview) void refreshDownloads(); });
+  window.addEventListener("pagehide", () => { if (!localPreview) clearDownloads("unavailable"); });
+  window.addEventListener("pageshow", event => { if (event.persisted && !localPreview) void refreshDownloads(); });
+  window.addEventListener("focus", () => { if (!localPreview && document.visibilityState === "visible") void refreshDownloads(); });
+  document.addEventListener("visibilitychange", () => {
+    if (localPreview) return;
+    if (document.visibilityState === "hidden") clearDownloads("unavailable");
+    else void refreshDownloads();
+  });
+  setInterval(() => {
+    if (!localPreview && document.visibilityState === "visible" && dialog.open && dialogMode === "downloads" && !downloadController) void refreshDownloads();
+  }, 20000);
+  void refreshDownloads();
   // Clean public links open at the collection; explicit anchors and editor previews keep their destination.
   if (window.parent === window && !window.location.hash) {
     window.requestAnimationFrame(() => {
