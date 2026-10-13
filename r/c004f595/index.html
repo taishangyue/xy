@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN" data-access-state="checking">
+<html lang="zh-CN" data-access-state="ready">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,35 +9,18 @@
   <title>开心西游 · 西行藏卷</title>
   <style>
     [hidden] { display: none !important; }
-    html:not([data-access-state="ready"]) #site-content { display: none !important; }
-    .access-guard { min-height: 100svh; display: grid; place-items: center; padding: 28px; box-sizing: border-box; background: #f5f0e4; color: #143d36; font-family: system-ui, sans-serif; }
-    .access-panel { width: min(100%, 440px); padding: 36px 28px; box-sizing: border-box; border: 1px solid #d8ccaa; border-radius: 16px; background: #fffaf0; text-align: center; }
-    .access-label { margin: 0 0 18px; color: #796336; letter-spacing: .15em; font-size: 14px; }
-    .access-panel h1 { font-size: 26px; margin: 0 0 16px; }
-    .access-message { font-size: 16px; line-height: 1.8; margin: 0 0 24px; }
-    .access-retry { border: 0; border-radius: 8px; padding: 12px 28px; background: #143d36; color: #fffaf0; font: inherit; cursor: pointer; }
-    .access-retry:disabled { opacity: .65; cursor: wait; }
-    .access-retry:focus-visible { outline: 3px solid #ad883b; outline-offset: 4px; }
   </style>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/site.css">
-  <link rel="stylesheet" href="assets/refinements.css?v=20261013-entry-gate">
-  <script src="site-config.js?v=20261013-entry-gate" defer></script>
-  <script src="assets/config-utils.js?v=20261013-entry-gate" defer></script>
-  <script src="assets/nudges.js?v=20261013-entry-gate" defer></script>
-  <script src="assets/site.js?v=20261013-entry-gate" defer></script>
+  <link rel="stylesheet" href="assets/refinements.css?v=20261014-download-only">
+  <script src="site-config.js?v=20261014-download-only" defer></script>
+  <script src="assets/config-utils.js?v=20261014-download-only" defer></script>
+  <script src="assets/nudges.js?v=20261014-download-only" defer></script>
+  <script src="assets/site.js?v=20261014-download-only" defer></script>
 </head>
 <body>
-  <section id="access-guard" class="access-guard" aria-labelledby="access-title">
-    <div class="access-panel">
-      <p class="access-label">开心西游 · 联网验证</p>
-      <h1 id="access-title">正在验证网络</h1>
-      <p id="access-message" class="access-message" role="status" aria-live="polite">验证成功后进入页面，请稍候。</p>
-      <button id="access-retry" class="access-retry" type="button" disabled>正在验证…</button>
-      <noscript><p class="access-message">进入页面需要联网验证。请连接网络并启用 JavaScript 后重试。</p></noscript>
-    </div>
-  </section>
-  <div id="site-content" hidden inert>
+  <div id="site-content">
+  <noscript><p class="unconfigured">获取下载链接需要联网并启用 JavaScript。</p></noscript>
   <a class="skip-link" href="#versions">跳到游戏版本</a>
   <header class="site-header">
     <div class="container header-inner">
