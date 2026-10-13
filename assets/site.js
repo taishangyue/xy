@@ -11,8 +11,7 @@
   let offlineEpoch = 0;
   let downloadController = null;
   let localPreview = false;
-  const nudgeCounts = new Map();
-  const nudgeStoragePrefix = "xiyou-update-taps:v1:";
+  const nudges = XiyouNudges.create(config.nudges.endpoint);
   const grid = document.querySelector("#version-grid");
   const dialog = document.querySelector("#resource-dialog");
   const content = document.querySelector("#dialog-content");
@@ -90,19 +89,22 @@
   }
   clearDownloads("checking");
   function nudgeCount(versionId) {
-    if (nudgeCounts.has(versionId)) return nudgeCounts.get(versionId);
-    let count = 0;
-    try {
-      const stored = window.localStorage.getItem(nudgeStoragePrefix + versionId);
-      const number = Number(stored);
-      if (stored !== null && /^\d+$/.test(stored) && Number.isSafeInteger(number)) count = number;
-    } catch { /* Storage can be disabled; clicks still work for this page session. */ }
-    nudgeCounts.set(versionId, count);
-    return count;
+    return nudges.snapshot().counts[versionId] ?? "—";
   }
-  function paintNudge(button, version, count) {
-    button.querySelector(".nudge-count").textContent = String(count);
-    button.setAttribute("aria-label", `${version.name}：催更 ${count}`);
+  function paintNudges() {
+    const state = nudges.snapshot();
+    document.querySelectorAll("[data-nudge-total]").forEach(el => { el.textContent = String(state.counts[el.dataset.nudgeTotal] ?? "—"); });
+    const button = content.querySelector("[data-update-request]");
+    if (!button || dialogMode !== "downloads" || !activeVersion) return;
+    const voted = state.voted.includes(activeVersion.id);
+    const label = state.pending === activeVersion.id ? "提交中" : voted ? "已催更" : state.status === "loading" ? "连接中" : state.status === "unavailable" ? "重试统计" : "催更";
+    button.querySelector(".nudge-label").textContent = label;
+    button.querySelector(".nudge-count").textContent = String(state.counts[activeVersion.id] ?? "—");
+    button.disabled = voted || !!state.pending || state.status === "loading" || !state.storageAvailable;
+    button.dataset.state = voted ? "voted" : state.status;
+    button.setAttribute("aria-label", `${activeVersion.name}：${label}，全站催更 ${state.counts[activeVersion.id] ?? "暂不可用"}`);
+    const note = content.querySelector("#nudge-status");
+    note.textContent = !state.storageAvailable ? "请允许浏览器保存本地数据后催更；当前仅显示全站总数。" : state.status === "unavailable" ? "催更统计暂时无法连接，请联网后重试。" : state.pending ? "正在提交，请稍候…" : voted ? "你的催更已记录。数字为全站汇总，刷新不会重复计数。" : "每个浏览器对每个版本可催更一次，数字为全站汇总。";
   }
   function render() {
     document.title = config.site.title;
@@ -123,7 +125,7 @@
         : `<span class="art-ring"></span><svg class="motif-icon"><use href="#icon-${v.motif}"></use></svg><span class="art-character">${escape(v.name.replace(/版$/, "").slice(0,2))}</span><span class="art-cloud cloud-one"></span><span class="art-cloud cloud-two"></span><span class="art-corner">${String(index).padStart(2,"0")}</span>`;
       return `<article class="version-card accent-${v.accent}${isFeatured ? " featured-card" : ""}" data-version="${escape(v.id)}">
         <div class="card-art motif-${v.motif}" aria-hidden="true">${art}</div>
-        <div class="card-body"><div class="card-meta"><span class="card-index">卷 ${String(index).padStart(2,"0")}</span><span class="card-free">免费下载</span></div>
+        <div class="card-body"><div class="card-meta"><span class="card-index">卷 ${String(index).padStart(2,"0")}</span><span class="card-nudge" title="全站催更总数">催更 <b data-nudge-total="${escape(v.id)}">${nudgeCount(v.id)}</b></span><span class="card-free">免费下载</span></div>
           <h3><button type="button" data-action="download" data-id="${escape(v.id)}">${escape(v.name)}<span class="sr-only">：查看下载入口</span></button>${isFeatured ? '<span class="featured-label">精选藏卷</span>' : ""}</h3>
           <p class="card-description">${escape(v.summary)}</p>
           <div class="card-actions"><button class="button button-ink" type="button" data-action="download" data-id="${escape(v.id)}">查看下载 ${icon("arrow")}</button>${owner.support ? `<button class="support-button" type="button" data-action="support" data-id="${escape(v.id)}">${icon(owner.icon)} ${owner.support}</button>` : '<span class="card-open-note">免费下载</span>'}</div>
@@ -151,7 +153,8 @@
         <div class="voluntary-note">${icon(owner.icon || "check")}<div><p>${escape(owner.message)}</p></div></div>
         <div class="download-list">${downloadStatus === "ready" ? v.downloads.map((link,i) => `<div class="download-row"><div class="download-label">${icon("folder")}<strong>${escape(link.label)}</strong></div>${link.code ? `<button type="button" class="copy-code" data-code-index="${i}" aria-label="复制${escape(link.label)}提取码 ${escape(link.code)}"><span>提取码 <b>${escape(link.code)}</b></span>${icon("copy")}</button>` : '<span class="no-code">无需提取码</span>'}<a class="button button-ink download-link" data-download-index="${i}" href="${escape(link.url)}" target="_blank" rel="noopener noreferrer">打开${escape(link.label)} ${icon("external")}</a></div>`).join("") || '<p class="unconfigured">此版本暂未配置有效下载入口，请稍后再来。</p>' : `<div class="unconfigured" role="status"><p>${downloadStatus === "checking" ? "正在连接网站，请稍候…" : "当前无法连接网站。请联网后重试。"}</p>${downloadStatus === "checking" ? "" : '<button class="button button-outline" type="button" data-download-retry>重新连接</button>'}</div>`}</div>
         <p class="download-hint">将在新窗口打开网盘；游戏更新后，仍使用这些文件夹入口。</p>
-        <div class="dialog-bottom"><span>愿你此行，满载欢喜。</span><div class="dialog-actions">${owner.support ? `<button class="support-button" type="button" data-dialog-action="support">${icon(owner.icon)} ${owner.support}</button>` : ""}<button class="nudge-button" type="button" data-update-request aria-label="${escape(v.name)}：催更 ${nudgeCount(v.id)}">${icon("bell")}<span>催更</span><b class="nudge-count" aria-live="polite" aria-atomic="true">${nudgeCount(v.id)}</b></button></div></div>`;
+        <div class="dialog-bottom"><span>愿你此行，满载欢喜。</span><div class="dialog-actions">${owner.support ? `<button class="support-button" type="button" data-dialog-action="support">${icon(owner.icon)} ${owner.support}</button>` : ""}<button class="nudge-button" type="button" data-update-request aria-describedby="nudge-status">${icon("bell")}<span class="nudge-label">催更</span><b class="nudge-count" aria-live="polite" aria-atomic="true">${nudgeCount(v.id)}</b></button></div></div><p class="nudge-note" id="nudge-status" role="status"></p>`;
+      paintNudges();
     } else {
       content.innerHTML = `<p class="eyebrow eyebrow-ink">心意 · THANK YOU</p><h2 id="dialog-title">${escape(owner.support || "自愿赞赏")}</h2><p class="dialog-intro">${escape(v.name)} · ${escape(owner.message)}</p>
         ${donate.wechatImage ? `<div class="qr-panel"><img class="donation-image" src="${escape(donate.wechatImage)}" alt="${escape(owner.support)}的微信赞赏码原图"><p>微信赞赏码 · 请使用微信识别</p></div>` : ""}
@@ -178,6 +181,7 @@
     document.body.classList.add("dialog-open");
     dialog.querySelector(".dialog-close").focus();
     if (mode === "downloads") void refreshDownloads();
+    if (mode === "downloads") void nudges.refresh();
   }
   function groupUrl(group) {
     return group.joinUrl || "mqqapi://card/show_pslcard?src_type=internal&version=1&uin=" + encodeURIComponent(group.number) + "&card_type=group&source=qrcode";
@@ -236,10 +240,10 @@
     }
     const nudgeButton = event.target.closest("[data-update-request]");
     if (nudgeButton && dialogMode === "downloads" && activeVersion) {
-      const count = Math.min(Number.MAX_SAFE_INTEGER, nudgeCount(activeVersion.id) + 1);
-      nudgeCounts.set(activeVersion.id, count);
-      try { window.localStorage.setItem(nudgeStoragePrefix + activeVersion.id, String(count)); } catch { /* Keep the in-memory count. */ }
-      paintNudge(nudgeButton, activeVersion, count);
+      if (nudgeButton.disabled) return;
+      if (nudges.snapshot().status !== "ready") { void nudges.refresh(); return; }
+      const result = await nudges.vote(activeVersion.id);
+      showToast(result.ok ? "催更已记录，谢谢支持。" : "暂未确认催更结果，请联网后重试。重复提交不会多计。");
       return;
     }
     const groupCopy = event.target.closest("[data-group-copy]");
@@ -279,13 +283,6 @@
   dialog.addEventListener("pointerdown", event => { pointerStartedOutside = event.target === dialog; });
   dialog.addEventListener("click", event => { if (event.target === dialog && pointerStartedOutside) dialog.close(); });
   dialog.addEventListener("close", () => {document.body.classList.remove("dialog-open"); if (returnFocus?.isConnected) returnFocus.focus();});
-  window.addEventListener("storage", event => {
-    if (event.key === null) nudgeCounts.clear();
-    else if (event.key.startsWith(nudgeStoragePrefix)) nudgeCounts.delete(event.key.slice(nudgeStoragePrefix.length));
-    else return;
-    const button = content.querySelector("[data-update-request]");
-    if (button && dialogMode === "downloads" && activeVersion) paintNudge(button, activeVersion, nudgeCount(activeVersion.id));
-  });
   // Local editor preview only. Nothing is saved to a server or accepted from unrelated windows.
   window.addEventListener("message", event => {
     if (window.parent === window || event.source !== window.parent) return;
@@ -304,6 +301,8 @@
     render();
   });
   render();
+  nudges.subscribe(paintNudges);
+  void nudges.refresh();
   window.addEventListener("offline", () => { offlineEpoch++; if (!localPreview) clearDownloads("unavailable"); });
   window.addEventListener("online", () => { if (!localPreview) void refreshDownloads(); });
   window.addEventListener("pagehide", () => { if (!localPreview) clearDownloads("unavailable"); });

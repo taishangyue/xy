@@ -7,6 +7,7 @@
  */
 window.XIYOU_CONFIG = {
   "schemaVersion": 1,
+  "nudges": {"endpoint": "https://xiyou-nudge-api.gritty-basil-6799.chatgpt.site/api/nudges"},
   "site": {
     "name": "开心西游",
     "subtitle": "西行藏卷 · 改版资源",

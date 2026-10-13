@@ -70,6 +70,11 @@
 .nudge-button:focus-visible{outline:3px solid #876325;outline-offset:3px}
 .nudge-button .icon{width:17px;height:17px;stroke-width:1.8;pointer-events:none}
 .nudge-count{min-width:24px;max-width:72px;padding:2px 7px;border-radius:20px;background:#fff8e6;color:#73501a;font-size:12px;font-weight:600;line-height:1.4;font-variant-numeric:tabular-nums;word-break:break-all;pointer-events:none}
+.nudge-button:disabled{cursor:default;transform:none;box-shadow:none}
+.nudge-button[data-state="voted"]{background:#f4e8c9;border-color:#c3ab72;color:#78613c}
+.nudge-note{margin:10px 0 0;text-align:right;color:#817568;font-size:11px;line-height:1.7}
+.card-nudge{color:#997438;font-size:11px;white-space:nowrap}
+.card-nudge b{font-variant-numeric:tabular-nums;font-weight:600}
 @media(max-width:560px){.dialog-actions .support-button{padding:12px 10px}.nudge-button{padding:10px 8px;gap:6px}}
 @media(prefers-reduced-motion:reduce){.nudge-button{transition:none}.nudge-button:hover{transform:none}}
 

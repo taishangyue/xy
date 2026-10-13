@@ -36,6 +36,7 @@
       schemaVersion: 1,
       site: {name: text(site.name, "开心西游"), subtitle: text(site.subtitle, "西行藏卷 · 改版资源"), title: text(site.title, "开心西游 · 西行藏卷"), heroTitleLines: Array.isArray(site.heroTitleLines) ? site.heroTitleLines.slice(0,2).map(line => text(line)) : ["西行未尽", "故事再续"], heroDescription: text(site.heroDescription), featuredId: text(site.featuredId, "xiaoyao")},
       donation: donation(data.donation),
+      nudges: {endpoint: isHttps(data.nudges?.endpoint) ? data.nudges.endpoint.replace(/\/$/, "") : ""},
       community: {
         defaultAction: data.community?.defaultAction === "copy" ? "copy" : "open",
         note: text(data.community?.note, "建议加入多个群聊，防止单群失联。"),
@@ -48,6 +49,7 @@
     if (!data || !Array.isArray(data.versions)) return ["配置缺少 versions 数组。"];
     const ids = new Set();
     if (!data.site?.name?.trim()) errors.push("请填写网站名称。");
+    if (data.nudges?.endpoint && (!isHttps(data.nudges.endpoint) || !/^https:\/\/[^/?#]+\/api\/nudges\/?$/.test(data.nudges.endpoint))) errors.push("催更接口须为 HTTPS 地址并以 /api/nudges 结尾。");
     data.versions.forEach((item, index) => {
       const prefix = "第 " + (index + 1) + " 个版本：";
       if (!item.name?.trim()) errors.push(prefix + "请填写版本名称。");
