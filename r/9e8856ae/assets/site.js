@@ -61,6 +61,10 @@
       const response = await fetch(url, {cache:"no-store", credentials:"omit", mode:"same-origin", redirect:"error", signal:controller.signal});
       if (!response.ok) throw new Error("site unavailable");
       let source = (await response.text()).replace(/^\uFEFF/, "").trim();
+      if (source.startsWith('{') && JSON.parse(source).xiyouEncrypted === 1) {
+        if (!window.XIYOU_ACCESS_CONTEXT) throw new Error("password required");
+        source = (await window.XIYOU_ACCESS_CONTEXT.decryptConfig(source)).trim();
+      }
       while (source.startsWith("/*")) {
         const end = source.indexOf("*/");
         if (end < 0) throw new Error("invalid configuration");
@@ -160,7 +164,7 @@
       content.innerHTML = `<p class="eyebrow eyebrow-ink">取卷 · DOWNLOAD</p><h2 id="dialog-title">${escape(v.name)}</h2><p class="dialog-intro">${escape(v.summary)}</p>
         <div class="voluntary-note">${icon(owner.icon || "check")}<div><p>${escape(owner.message)}</p></div></div>
         <div class="download-list">${downloadStatus === "ready" ? v.downloads.map((link,i) => `<div class="download-row"><div class="download-label">${icon("folder")}<strong>${escape(link.label)}</strong></div>${link.code ? `<button type="button" class="copy-code" data-code-index="${i}" aria-label="复制${escape(link.label)}提取码 ${escape(link.code)}"><span>提取码 <b>${escape(link.code)}</b></span>${icon("copy")}</button>` : '<span class="no-code">无需提取码</span>'}<a class="button button-ink download-link" data-download-index="${i}" href="${escape(link.url)}" target="_blank" rel="noopener noreferrer">打开${escape(link.label)} ${icon("external")}</a></div>`).join("") || '<p class="unconfigured">此版本暂未配置有效下载入口，请稍后再来。</p>' : `<div class="unconfigured" role="status"><p>${downloadStatus === "checking" ? "正在连接网站，请稍候…" : "当前无法连接网站。请联网后重试。"}</p>${downloadStatus === "checking" ? "" : '<button class="button button-outline" type="button" data-download-retry>重新连接</button>'}</div>`}</div>
-        <p class="download-hint">将在新窗口打开网盘；游戏更新后，仍使用这些文件夹入口。</p>
+        <p class="download-hint">将在新窗口打开对应版本的下载页；百度和123网盘保留备用。</p>
         <div class="dialog-bottom"><span>愿你此行，满载欢喜。</span><div class="dialog-actions">${owner.support ? `<button class="support-button" type="button" data-dialog-action="support">${icon(owner.icon)} ${owner.support}</button>` : ""}<button class="nudge-button" type="button" data-update-request>${icon("bell")}<span class="nudge-label">催更</span><b class="nudge-count" aria-live="polite" aria-atomic="true">${nudgeCount(v.id)}</b></button></div></div>`;
       paintNudges();
     } else {
