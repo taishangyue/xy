@@ -24,6 +24,7 @@
       ids.add(id);
       return {
         id, name: text(item.name, "未命名版本"), summary: text(item.summary),
+        editions: (Array.isArray(item.editions) ? item.editions : []).filter(edition => edition && /^[a-z0-9-]+$/.test(edition.id) && ["正式版", "原版", "存档版"].includes(edition.type)).map(edition => ({id:edition.id,name:text(edition.name),version:text(edition.version),type:edition.type})),
         ownership: ["self", "collected", "unknown"].includes(item.ownership) ? item.ownership : "unknown",
         author: text(item.author), enabled: item.enabled !== false,
         motif: ["mountain", "sun", "fan", "scroll", "lotus"].includes(item.motif) ? item.motif : "mountain",

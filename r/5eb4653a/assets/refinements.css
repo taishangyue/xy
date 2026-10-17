@@ -81,3 +81,7 @@
 /* Original illustrated covers with outlined two-character calligraphy. */
 .version-cover{display:block;width:100%;height:100%;object-fit:cover;object-position:center;pointer-events:none}
 .card-art:has(.version-cover){background:#1d3340;border-bottom:1px solid #25382b12}
+/* APK editions stay in their existing version category. */
+.edition-list{list-style:none;padding:0;margin:0 0 20px;display:grid;gap:8px}
+.edition-list li{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:10px 14px;border:1px solid rgba(29,76,65,.13);border-radius:10px}
+.edition-list span{color:var(--muted,#687b73);font-size:.9rem}
