@@ -61,7 +61,7 @@ window.XIYOU_CONFIG = {
     {
       "id": "xiaoyao",
       "name": "逍遥版",
-      "summary": "逍遥 1.3.5（正式版）。",
+      "summary": "逍遥（正式版）。",
       "ownership": "self",
       "author": "",
       "enabled": true,
@@ -87,7 +87,7 @@ window.XIYOU_CONFIG = {
     {
       "id": "shie",
       "name": "释厄版",
-      "summary": "西游释厄传 1.0.4（正式版）。",
+      "summary": "西游释厄传（正式版）。",
       "ownership": "self",
       "author": "",
       "enabled": true,
@@ -113,7 +113,7 @@ window.XIYOU_CONFIG = {
     {
       "id": "taishang",
       "name": "太上版",
-      "summary": "太上西游记 1.3.2（正式版）；太上西游记存档版 1.3.2（存档版）。",
+      "summary": "太上西游记（正式版）；太上西游记存档版（存档版）。",
       "ownership": "self",
       "author": "",
       "enabled": true,
@@ -145,7 +145,7 @@ window.XIYOU_CONFIG = {
     {
       "id": "zaixu",
       "name": "再续版",
-      "summary": "再续西游 · 原版 2.7.1（原版）；再续西游存档版 2.7.1（存档版）。原版与存档版包名不同，可共存。",
+      "summary": "再续西游 · 原版（原版）；再续西游存档版（存档版）。原版与存档版包名不同，可共存。",
       "ownership": "collected",
       "author": "",
       "enabled": true,
@@ -177,7 +177,7 @@ window.XIYOU_CONFIG = {
     {
       "id": "huodong",
       "name": "活动版",
-      "summary": "大唐活动版 1.3.1.19（正式版）；大唐活动存档版 1.3.4.5（存档版）。",
+      "summary": "大唐活动版（正式版）；大唐活动存档版（存档版）。",
       "ownership": "collected",
       "author": "",
       "enabled": true,
@@ -209,7 +209,7 @@ window.XIYOU_CONFIG = {
     {
       "id": "original",
       "name": "原版本",
-      "summary": "开心西游 1.3.1（正式版）。",
+      "summary": "开心西游（正式版）。",
       "ownership": "collected",
       "author": "",
       "enabled": true,
@@ -235,7 +235,7 @@ window.XIYOU_CONFIG = {
     {
       "id": "mogai",
       "name": "魔改版",
-      "summary": "魔改西游 1.11（正式版）。",
+      "summary": "魔改西游（正式版）。",
       "ownership": "collected",
       "author": "",
       "enabled": true,
