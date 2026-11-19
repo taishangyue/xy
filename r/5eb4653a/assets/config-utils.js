@@ -10,10 +10,6 @@
     if (!value) return false;
     return isHttps(value) || /^(?:assets\/)[\w\u3400-\u9fff .\/-]+\.(?:png|jpe?g|webp|gif|avif)$/i.test(value) && !value.includes("..");
   };
-  function donation(value) {
-    const source = value && typeof value === "object" ? value : {};
-    return {wechatImage: isImage(source.wechatImage) ? source.wechatImage : "", afdianUrl: isHttps(source.afdianUrl) ? source.afdianUrl : "", note: text(source.note, "感谢支持网站维护、资源整理与后续更新。")};
-  }
   function normalize(source) {
     const data = source && typeof source === "object" ? source : {};
     const site = data.site && typeof data.site === "object" ? data.site : {};
@@ -29,14 +25,12 @@
         author: text(item.author), enabled: item.enabled !== false,
         motif: ["mountain", "sun", "fan", "scroll", "lotus"].includes(item.motif) ? item.motif : "mountain",
         accent: ["jade", "cinnabar", "gold", "blue", "purple"].includes(item.accent) ? item.accent : "jade",
-        downloads: (Array.isArray(item.downloads) ? item.downloads : []).filter(link => link && isHttps(link.url)).map(link => ({label: text(link.label, "下载入口"), url: link.url, code: text(link.code)})),
-        donation: item.donation && typeof item.donation === "object" ? donation(item.donation) : null
+        downloads: (Array.isArray(item.downloads) ? item.downloads : []).filter(link => link && isHttps(link.url)).map(link => ({label: text(link.label, "下载入口"), url: link.url, code: text(link.code)}))
       };
     });
     return {
       schemaVersion: 1,
       site: {name: text(site.name, "开心西游"), subtitle: text(site.subtitle, "西行藏卷 · 改版资源"), title: text(site.title, "开心西游 · 西行藏卷"), heroTitleLines: Array.isArray(site.heroTitleLines) ? site.heroTitleLines.slice(0,2).map(line => text(line)) : ["西行未尽", "故事再续"], heroDescription: text(site.heroDescription), featuredId: text(site.featuredId, "xiaoyao")},
-      donation: donation(data.donation),
       nudges: {endpoint: isHttps(data.nudges?.endpoint) ? data.nudges.endpoint.replace(/\/$/, "") : ""},
       community: {
         defaultAction: data.community?.defaultAction === "copy" ? "copy" : "open",
@@ -70,10 +64,6 @@
     (data.community?.groups || []).forEach((group,index) => {
       if (!group.name?.trim() || !/^\d{5,12}$/.test(group.number)) errors.push("交流群 " + (index+1) + "：请填写群名称与正确的数字群号。");
       if (group.joinUrl && !isHttps(group.joinUrl)) errors.push("交流群 " + (index+1) + "：官方邀请链接须为完整 HTTPS 地址，未获取时留空即可。");
-    });
-    [data.donation, ...data.versions.map(item => item.donation)].filter(Boolean).forEach((item, index) => {
-      if (item.wechatImage && !isImage(item.wechatImage)) errors.push("赞赏设置 " + (index+1) + "：图片须为 assets/ 下的原图路径，或完整 HTTPS 图片链接。");
-      if (item.afdianUrl && !isHttps(item.afdianUrl)) errors.push("赞赏设置 " + (index+1) + "：爱发电须为完整 HTTPS 链接。");
     });
     return errors;
   }

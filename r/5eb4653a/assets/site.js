@@ -20,7 +20,8 @@
   const icon = name => `<svg class="icon" aria-hidden="true"><use href="#icon-${name}"></use></svg>`;
   const illustratedVersions = new Set(["xiaoyao", "shie", "taishang", "zaixu", "huodong", "original", "mogai"]);
   const escape = value => String(value ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}[ch]));
-  const role = version => version.ownership === "self" ? {support:"支持一下", icon:"heart", message:"喜欢这段西行，欢迎支持一下，帮助后续制作。"} : version.ownership === "collected" ? {support:"支持整理者", icon:"gift", message:"喜欢这份分享，欢迎支持整理者，帮助后续整理。"} : {support:"自愿赞赏", icon:"heart", message:"愿这一卷能带给你快乐。感谢支持这处西游资源小站。"};
+  const supportMessage = "进入群聊就是最好的支持。";
+  const role = version => version.ownership === "collected" ? {support:"支持整理者", icon:"gift"} : {support:"支持一下", icon:"heart"};
   // Never trust a download address restored from the HTTP cache or back/forward cache.
   // The public configuration is fetched from the site again, without eval or local storage.
   function clearDownloads(state = "unavailable") {
@@ -145,7 +146,6 @@
     }).join("");
     document.querySelector("#empty-state").hidden = visible.length !== 0;
   }
-  function donationFor(version) { return version.donation || config.donation; }
   function showToast(message) {
     clearTimeout(toastTimer);
     const toast = document.querySelector("#toast");
@@ -159,25 +159,16 @@
     if (dialogMode === "community") {renderCommunity();return;}
     const v = activeVersion;
     const owner = role(v);
-    const donate = donationFor(v);
     if (dialogMode === "downloads") {
       content.innerHTML = `<p class="eyebrow eyebrow-ink">取卷 · DOWNLOAD</p><h2 id="dialog-title">${escape(v.name)}</h2><p class="dialog-intro">${escape(v.summary)}</p>
         ${v.editions.length ? `<ul class="edition-list" aria-label="当前安装包">${v.editions.map(edition => `<li><strong>${escape(edition.name)}</strong><span>${escape(edition.type)}</span></li>`).join("")}</ul>` : ""}
-        <div class="voluntary-note">${icon(owner.icon || "check")}<div><p>${escape(owner.message)}</p></div></div>
+        <div class="voluntary-note">${icon(owner.icon)}<div><p>${supportMessage}</p></div></div>
         <div class="download-list">${downloadStatus === "ready" ? v.downloads.map((link,i) => `<div class="download-row"><div class="download-label">${icon("folder")}<strong>${escape(link.label)}</strong></div>${link.code ? `<button type="button" class="copy-code" data-code-index="${i}" aria-label="复制${escape(link.label)}提取码 ${escape(link.code)}"><span>提取码 <b>${escape(link.code)}</b></span>${icon("copy")}</button>` : '<span class="no-code">无需提取码</span>'}<a class="button button-ink download-link" data-download-index="${i}" href="${escape(link.url)}" target="_blank" rel="noopener noreferrer">打开${escape(link.label)} ${icon("external")}</a></div>`).join("") || '<p class="unconfigured">此版本暂未配置有效下载入口，请稍后再来。</p>' : `<div class="unconfigured" role="status"><p>${downloadStatus === "checking" ? "正在连接网站，请稍候…" : "当前无法连接网站。请联网后重试。"}</p>${downloadStatus === "checking" ? "" : '<button class="button button-outline" type="button" data-download-retry>重新连接</button>'}</div>`}</div>
         <p class="download-hint">选择下载渠道，获取本分类的正式包或存档版。</p>
         <div class="dialog-bottom"><span>愿你此行，满载欢喜。</span><div class="dialog-actions">${owner.support ? `<button class="support-button" type="button" data-dialog-action="support">${icon(owner.icon)} ${owner.support}</button>` : ""}<button class="nudge-button" type="button" data-update-request>${icon("bell")}<span class="nudge-label">催更</span><b class="nudge-count" aria-live="polite" aria-atomic="true">${nudgeCount(v.id)}</b></button></div></div>`;
       paintNudges();
     } else {
-      content.innerHTML = `<p class="eyebrow eyebrow-ink">心意 · THANK YOU</p><h2 id="dialog-title">${escape(owner.support || "自愿赞赏")}</h2><p class="dialog-intro">${escape(v.name)} · ${escape(owner.message)}</p>
-        ${donate.wechatImage ? `<div class="qr-panel"><img class="donation-image" src="${escape(donate.wechatImage)}" alt="${escape(owner.support)}的微信赞赏码原图"><p>微信赞赏码 · 请使用微信识别</p></div>` : ""}
-        ${donate.afdianUrl ? `<a class="button button-ink afdian-link" href="${escape(donate.afdianUrl)}" target="_blank" rel="noopener noreferrer">前往爱发电 ${icon("external")}</a>` : ""}
-        ${!donate.wechatImage && !donate.afdianUrl ? `<div class="unconfigured donation-empty">${icon(owner.icon || "heart")}<strong>赞赏入口尚未设置</strong><p>赞赏方式稍后补充。<br>你可以继续查看下载入口。</p></div>` : ""}
-        <p class="donation-note">${escape(donate.note)}</p><p class="hosting-note">赞赏支持网站维护与后续更新。若长期缺少赞赏支持，后续维护可能难以持续，网站入口也可能失效。</p><button class="button button-outline return-download" type="button" data-dialog-action="downloads">查看免费下载入口 ${icon("arrow")}</button>`;
-      const img = content.querySelector(".donation-image");
-      if (img) img.addEventListener("error", () => {
-        img.closest(".qr-panel").innerHTML = '<p class="unconfigured">赞赏码暂时无法加载，请稍后再试。<br>下载不受影响。</p>';
-      }, {once:true});
+      content.innerHTML = `<h2 id="dialog-title" class="support-message"><button type="button" data-dialog-action="community">${supportMessage}</button></h2>`;
     }
   }
   function openDialog(version, mode, opener) {
@@ -268,7 +259,7 @@
     }
     const button = event.target.closest("[data-dialog-action]");
     if (button) {
-      dialogMode = button.dataset.dialogAction === "support" ? "support" : "downloads";
+      dialogMode = button.dataset.dialogAction;
       if (dialogMode === "downloads" && !localPreview) clearDownloads("checking");
       renderDialog();
       dialog.querySelector(".dialog-close").focus();

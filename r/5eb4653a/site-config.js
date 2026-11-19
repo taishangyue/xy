@@ -16,11 +16,6 @@ window.XIYOU_CONFIG = {
     "featuredId": "xiaoyao",
     "downloadPolicy": "baidu_only_owner_managed"
   },
-  "donation": {
-    "wechatImage": "assets/wechat-reward-20261011-original.png",
-    "afdianUrl": "https://afdian.com/a/xiaoyaotaishang",
-    "note": "感谢支持网站维护、资源整理与后续更新。"
-  },
   "community": {
     "defaultAction": "open",
     "note": "建议加入多个群聊，防止单群因恶意举报等原因失联。",
@@ -74,7 +69,6 @@ window.XIYOU_CONFIG = {
           "code": "xc6t"
         }
       ],
-      "donation": null,
       "editions": [
         {
           "id": "xiaoyao",
@@ -100,7 +94,6 @@ window.XIYOU_CONFIG = {
           "code": "2umy"
         }
       ],
-      "donation": null,
       "editions": [
         {
           "id": "shie",
@@ -126,7 +119,6 @@ window.XIYOU_CONFIG = {
           "code": "7vpz"
         }
       ],
-      "donation": null,
       "editions": [
         {
           "id": "taishang",
@@ -158,7 +150,6 @@ window.XIYOU_CONFIG = {
           "code": "6kaq"
         }
       ],
-      "donation": null,
       "editions": [
         {
           "id": "zaixu",
@@ -190,7 +181,6 @@ window.XIYOU_CONFIG = {
           "code": "9885"
         }
       ],
-      "donation": null,
       "editions": [
         {
           "id": "huodong",
@@ -222,7 +212,6 @@ window.XIYOU_CONFIG = {
           "code": "3259"
         }
       ],
-      "donation": null,
       "editions": [
         {
           "id": "original",
@@ -248,7 +237,6 @@ window.XIYOU_CONFIG = {
           "code": "2026"
         }
       ],
-      "donation": null,
       "editions": [
         {
           "id": "mogai",
